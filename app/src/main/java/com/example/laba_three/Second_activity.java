@@ -1,6 +1,8 @@
 package com.example.laba_three;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -16,16 +18,27 @@ import java.util.List;
 
 public class Second_activity extends AppCompatActivity {
 
+    // Поля для БД
     FeedReaderDbHelper dbHelper;
     SQLiteDatabase db;
+
+    // Поля для списка
+    private RecyclerView recyclerView;
+    private RecyclerView.Adapter mAdapter;
+    private RecyclerView.LayoutManager layoutManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        Log.d("MyTag", "Ну я во втором активити");
-
         setContentView(R.layout.activity_second_activity);
+
+        // Создаем список
+        recyclerView = (RecyclerView) findViewById(R.id.my_recycler_view);
+
+        layoutManager = new LinearLayoutManager(this);
+        recyclerView.setLayoutManager(layoutManager);
+
+        // Адаптер создадим после открытия БД
 
         // Открываем БД
         Log.d("MyTag", "Сейчас попробую открыть БД");
@@ -45,45 +58,45 @@ public class Second_activity extends AppCompatActivity {
                 FeedEntry.COLUMN_NAME_FIO + " ASC";
 
         Log.d("MyTag", "Хочу получить курсор");
-        try {
-            Cursor cursor = db.query(
-                    FeedEntry.TABLE_NAME,
-                    projection,
-                    null,
-                    null,
-                    null,
-                    null,
-                    sortOrder
-            );
 
-            List itemIDs = new ArrayList<>();   // ID
-            List itemFIOs = new ArrayList<>();  // full name student
-            List itemDates = new ArrayList<>(); // date added
+        Cursor cursor = db.query(
+                FeedEntry.TABLE_NAME,
+                projection,
+                null,
+                null,
+                null,
+                null,
+                sortOrder
+        );
 
-            Log.d("MyTag", "Пробую читать");
+        List itemIDs = new ArrayList<>();   // ID
+        List itemFIOs = new ArrayList<>();  // full name student
+        List itemDates = new ArrayList<>(); // date added
 
-            while (cursor.moveToNext()) {
-                // Получения ID
-                long itemId = cursor.getLong(
-                        cursor.getColumnIndexOrThrow(BaseColumns._ID));
-                // Получение ФИО студента
-                String itemFIO = cursor.getString(
-                        cursor.getColumnIndexOrThrow(FeedEntry.COLUMN_NAME_FIO));
-                // Получение времени добавления
-                String itemDate = cursor.getString(
-                        cursor.getColumnIndexOrThrow(FeedEntry.COLUMN_NAME_TIME));
+        Log.d("MyTag", "Пробую читать");
 
-                itemIDs.add(itemId);
-                itemFIOs.add(itemFIO);
-                itemDates.add(itemDate);
+        while (cursor.moveToNext()) {
+            // Получения ID
+            long itemId = cursor.getLong(
+                    cursor.getColumnIndexOrThrow(BaseColumns._ID));
+            // Получение ФИО студента
+            String itemFIO = cursor.getString(
+                    cursor.getColumnIndexOrThrow(FeedEntry.COLUMN_NAME_FIO));
+            // Получение времени добавления
+            String itemDate = cursor.getString(
+                    cursor.getColumnIndexOrThrow(FeedEntry.COLUMN_NAME_TIME));
 
-                Log.d("MyTag", "Id:" + itemId + "; FIO:" + itemFIO + "; Time:" + itemDate);
-            }
+            itemIDs.add(itemId);
+            itemFIOs.add(itemFIO);
+            itemDates.add(itemDate);
 
-            cursor.close();
-        }catch (Exception e){
-            Log.d("MyTag", "Error: "+e);
+            Log.d("MyTag", "Id:" + itemId + "; FIO:" + itemFIO + "; Time:" + itemDate);
         }
+
+        cursor.close();
+
+        mAdapter = new MyAdapter(itemIDs, itemFIOs, itemDates);
+        recyclerView.setAdapter(mAdapter);
     }
 
 
