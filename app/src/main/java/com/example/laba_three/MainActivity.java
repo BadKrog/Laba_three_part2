@@ -13,6 +13,7 @@ import android.provider.BaseColumns;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Toast;
 
 import com.example.laba_three.FeedReaderContract.FeedReaderDbHelper;
 import com.example.laba_three.FeedReaderContract.FeedEntry;
@@ -58,6 +59,7 @@ public class MainActivity extends AppCompatActivity {
         // Создание БД
         dbHelper = new FeedReaderDbHelper(getApplicationContext());
         db = dbHelper.getWritableDatabase();
+        dbHelper.deleteData(db);
 
 
         // Запись в БД 5 студентов
@@ -93,6 +95,10 @@ public class MainActivity extends AppCompatActivity {
                 values.put(FeedEntry.COLUMN_NAME_TIME, getCurrentTime());
 
                 db.replaceOrThrow(FeedEntry.TABLE_NAME, null, values);
+
+                Toast toast = Toast.makeText(MainActivity.this, lastRow+"-ая запись была изменена", Toast.LENGTH_SHORT);
+                toast.show();
+
             }
         });
 
@@ -138,24 +144,36 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private long writeToBD(){
-        ContentValues values = new ContentValues();
-        // Считываем ФИО студента из файла
-        String full_name = "";
-        try {
-            full_name  = readFromRaw(currentFIO);
-        } catch (IOException e) {
-            e.printStackTrace();
-            full_name = "Произошла ошибка чтения.";
+        Toast toast;
+        if (currentFIO<30) {
+            ContentValues values = new ContentValues();
+            // Считываем ФИО студента из файла
+            String full_name = "";
+            try {
+                full_name = readFromRaw(currentFIO);
+            } catch (IOException e) {
+                e.printStackTrace();
+                full_name = "Произошла ошибка чтения.";
+            }
+
+            values.put(FeedEntry.COLUMN_NAME_FIO, full_name);
+            values.put(FeedEntry.COLUMN_NAME_TIME, getCurrentTime());
+
+            long keyRow = db.insert(FeedEntry.TABLE_NAME, null, values);
+
+            values.clear();
+
+            currentFIO++;
+
+            toast = Toast.makeText(this, "Запись добавлена", Toast.LENGTH_SHORT);
+            toast.show();
+
+            return keyRow;
         }
 
-        values.put(FeedEntry.COLUMN_NAME_FIO, full_name);
-        values.put(FeedEntry.COLUMN_NAME_TIME, getCurrentTime());
+        toast = Toast.makeText(this, "Добавлять больше некого!", Toast.LENGTH_SHORT);
+        toast.show();
 
-        long keyRow = db.insert(FeedEntry.TABLE_NAME, null, values);
-
-        values.clear();
-
-        currentFIO++;
-        return keyRow;
+        return lastRow;
     }
 }
