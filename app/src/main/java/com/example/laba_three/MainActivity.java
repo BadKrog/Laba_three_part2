@@ -144,7 +144,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private long writeToBD(){
+
         Toast toast;
+
         if (currentFIO<30) {
             ContentValues values = new ContentValues();
             // Считываем ФИО студента из файла
